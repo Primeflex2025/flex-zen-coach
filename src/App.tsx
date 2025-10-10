@@ -14,6 +14,7 @@ import Water from "./pages/Water";
 import Videos from "./pages/Videos";
 import Cardio from "./pages/Cardio";
 import Steps from "./pages/Steps";
+import Nutrition from "./pages/Nutrition";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/videos" element={<Videos />} />
           <Route path="/cardio" element={<Cardio />} />
           <Route path="/steps" element={<Steps />} />
+          <Route path="/nutrition" element={<Nutrition />} />
           <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
