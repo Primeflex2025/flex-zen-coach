@@ -11,6 +11,7 @@ import {
   Music,
   Brain,
   Video,
+  Pill,
   Settings,
   LogOut
 } from "lucide-react";
@@ -25,6 +26,7 @@ const Dashboard = () => {
     { icon: Footprints, title: "Step Tracker", desc: "Daily activity monitor", link: "/steps", color: "text-purple-500" },
     { icon: Music, title: "Mind-Muscle Mode", desc: "Focus with music", link: "/mindmuscle", color: "text-primary" },
     { icon: Video, title: "Trainer Videos", desc: "Expert guidance", link: "/videos", color: "text-orange-500" },
+    { icon: Pill, title: "Nutrition Guide", desc: "Supplements & macros", link: "/nutrition", color: "text-yellow-500" },
   ];
 
   return (
