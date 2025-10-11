@@ -1,9 +1,13 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, X, Check, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const HeightGrowth = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const scrollToDiet = () => {
     document.getElementById('diet-plan')?.scrollIntoView({ behavior: 'smooth' });
   };
