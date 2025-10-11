@@ -13,7 +13,8 @@ import {
   Video,
   Pill,
   Settings,
-  LogOut
+  LogOut,
+  Move
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -27,6 +28,7 @@ const Dashboard = () => {
     { icon: Music, title: "Mind-Muscle Mode", desc: "Focus with music", link: "/mindmuscle", color: "text-primary" },
     { icon: Video, title: "Trainer Videos", desc: "Expert guidance", link: "/videos", color: "text-orange-500" },
     { icon: Pill, title: "Nutrition Guide", desc: "Supplements & macros", link: "/nutrition", color: "text-yellow-500" },
+    { icon: Move, title: "Height Growth", desc: "Growth tips & exercises", link: "/height-growth", color: "text-emerald-500" },
   ];
 
   return (
