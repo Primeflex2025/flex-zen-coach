@@ -18,6 +18,7 @@ import Nutrition from "./pages/Nutrition";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import HeightGrowth from "./pages/HeightGrowth";
+import FormDetector from "./pages/FormDetector";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/nutrition" element={<Nutrition />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/height-growth" element={<HeightGrowth />} />
+          <Route path="/form-detector" element={<FormDetector />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

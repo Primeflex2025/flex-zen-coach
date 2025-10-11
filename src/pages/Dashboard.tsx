@@ -14,7 +14,8 @@ import {
   Pill,
   Settings,
   LogOut,
-  Move
+  Move,
+  Camera
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -29,6 +30,7 @@ const Dashboard = () => {
     { icon: Video, title: "Trainer Videos", desc: "Expert guidance", link: "/videos", color: "text-orange-500" },
     { icon: Pill, title: "Nutrition Guide", desc: "Supplements & macros", link: "/nutrition", color: "text-yellow-500" },
     { icon: Move, title: "Height Growth", desc: "Growth tips & exercises", link: "/height-growth", color: "text-emerald-500" },
+    { icon: Camera, title: "Form Detector", desc: "AI form analysis (Soon)", link: "/form-detector", color: "text-pink-500" },
   ];
 
   return (
