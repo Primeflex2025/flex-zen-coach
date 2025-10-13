@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      community_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       diet_plans: {
         Row: {
           category: string
@@ -65,6 +89,27 @@ export type Database = {
           id?: string
           is_enabled?: boolean | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      feedback: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          user_id?: string
         }
         Relationships: []
       }

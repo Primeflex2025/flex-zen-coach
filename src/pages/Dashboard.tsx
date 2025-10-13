@@ -17,7 +17,9 @@ import {
   LogOut,
   Move,
   Camera,
-  Shield
+  Shield,
+  MessageSquare,
+  Send
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -41,6 +43,8 @@ const Dashboard = () => {
     { icon: Pill, title: "Nutrition Guide", desc: "Supplements & macros", link: "/nutrition", color: "text-yellow-500" },
     { icon: Move, title: "Height Growth", desc: "Growth tips & exercises", link: "/height-growth", color: "text-emerald-500" },
     { icon: Camera, title: "Form Detector", desc: "AI form analysis (Soon)", link: "/form-detector", color: "text-pink-500" },
+    { icon: MessageSquare, title: "Community", desc: "Chat with members", link: "/community", color: "text-indigo-500" },
+    { icon: Send, title: "Feedback", desc: "Share your thoughts", link: "/feedback", color: "text-teal-500" },
   ];
 
   return (

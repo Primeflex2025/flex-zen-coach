@@ -48,7 +48,7 @@ const Landing = () => {
                 Start Your Journey
               </Button>
             </Link>
-            <Link to="/dashboard">
+            <Link to="/auth">
               <Button variant="premium" size="lg" className="w-full sm:w-auto">
                 Explore Features
               </Button>

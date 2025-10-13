@@ -15,10 +15,20 @@ import {
   Settings, 
   FileText, 
   Save, 
-  Shield 
+  Shield,
+  MessageSquare 
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+
+interface FeedbackItem {
+  id: string;
+  message: string;
+  created_at: string;
+  profiles: {
+    email: string;
+  } | null;
+}
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -30,9 +40,11 @@ const AdminPanel = () => {
   const [videoMuscle, setVideoMuscle] = useState("");
   const [videoDifficulty, setVideoDifficulty] = useState("Beginner");
   const [isFeatured, setIsFeatured] = useState(false);
+  const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    loadFeedback();
   }, []);
 
   useEffect(() => {
@@ -45,6 +57,37 @@ const AdminPanel = () => {
       navigate("/dashboard");
     }
   }, [isAdmin, loading, navigate, toast]);
+
+  const loadFeedback = async () => {
+    const { data, error } = await supabase
+      .from("feedback")
+      .select("id, message, created_at, user_id")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load feedback",
+        variant: "destructive",
+      });
+    } else {
+      // Fetch user emails separately
+      const feedbackWithProfiles = await Promise.all(
+        (data || []).map(async (item) => {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("email")
+            .eq("id", item.user_id)
+            .single();
+          return {
+            ...item,
+            profiles: profile || { email: "Unknown" },
+          };
+        })
+      );
+      setFeedback(feedbackWithProfiles);
+    }
+  };
 
   const handleVideoUpload = async () => {
     if (!videoTitle || !videoUrl) {
@@ -121,10 +164,14 @@ const AdminPanel = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="videos" className="space-y-6">
-          <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+          <TabsList className="grid grid-cols-5 w-full max-w-3xl">
             <TabsTrigger value="videos">
               <Video className="h-4 w-4 mr-2" />
               Videos
+            </TabsTrigger>
+            <TabsTrigger value="feedback">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Feedback
             </TabsTrigger>
             <TabsTrigger value="diet">
               <Edit className="h-4 w-4 mr-2" />
@@ -139,6 +186,46 @@ const AdminPanel = () => {
               Files
             </TabsTrigger>
           </TabsList>
+
+          {/* Feedback Tab */}
+          <TabsContent value="feedback" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  User Feedback
+                </CardTitle>
+                <CardDescription>
+                  View and manage feedback submitted by users
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {feedback.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    No feedback submissions yet
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {feedback.map((item) => (
+                      <Card key={item.id} className="bg-muted/50">
+                        <CardContent className="pt-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <p className="text-sm font-medium">
+                              {item.profiles?.email || "Unknown User"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(item.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                          <p className="text-sm">{item.message}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Video Upload Tab */}
           <TabsContent value="videos" className="space-y-6">

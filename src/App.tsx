@@ -21,6 +21,8 @@ import NotFound from "./pages/NotFound";
 import HeightGrowth from "./pages/HeightGrowth";
 import FormDetector from "./pages/FormDetector";
 import AdminPanel from "./pages/AdminPanel";
+import Feedback from "./pages/Feedback";
+import Community from "./pages/Community";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,8 @@ const App = () => (
             <Route path="/height-growth" element={<HeightGrowth />} />
             <Route path="/form-detector" element={<FormDetector />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/community" element={<Community />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
