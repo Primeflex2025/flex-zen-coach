@@ -194,6 +194,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_stats: {
+        Row: {
+          calories_burned: number
+          created_at: string
+          current_streak: number
+          id: string
+          last_workout_date: string | null
+          steps_today: number
+          updated_at: string
+          user_id: string
+          workouts_completed: number
+        }
+        Insert: {
+          calories_burned?: number
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_workout_date?: string | null
+          steps_today?: number
+          updated_at?: string
+          user_id: string
+          workouts_completed?: number
+        }
+        Update: {
+          calories_burned?: number
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_workout_date?: string | null
+          steps_today?: number
+          updated_at?: string
+          user_id?: string
+          workouts_completed?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

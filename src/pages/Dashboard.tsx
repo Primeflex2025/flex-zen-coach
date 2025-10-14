@@ -2,6 +2,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import { 
   Dumbbell, 
   Apple, 
@@ -25,7 +27,38 @@ import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { isAdmin, signOut } = useAuth();
+  const { isAdmin, signOut, user } = useAuth();
+  const [stats, setStats] = useState({
+    workouts_completed: 0,
+    current_streak: 0,
+    calories_burned: 0,
+    steps_today: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from("user_stats")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (data) {
+        setStats({
+          workouts_completed: data.workouts_completed,
+          current_streak: data.current_streak,
+          calories_burned: data.calories_burned,
+          steps_today: data.steps_today,
+        });
+      }
+      setLoading(false);
+    };
+
+    fetchStats();
+  }, [user]);
 
   const handleLogout = async () => {
     await signOut();
@@ -90,25 +123,33 @@ const Dashboard = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="bg-card border-border hover-scale">
               <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-primary">12</div>
+                <div className="text-2xl font-bold text-primary">
+                  {loading ? "..." : stats.workouts_completed}
+                </div>
                 <div className="text-sm text-muted-foreground">Workouts Done</div>
               </CardContent>
             </Card>
             <Card className="bg-card border-border hover-scale">
               <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-green-500">7</div>
+                <div className="text-2xl font-bold text-green-500">
+                  {loading ? "..." : stats.current_streak}
+                </div>
                 <div className="text-sm text-muted-foreground">Day Streak</div>
               </CardContent>
             </Card>
             <Card className="bg-card border-border hover-scale">
               <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-blue-500">2,400</div>
+                <div className="text-2xl font-bold text-blue-500">
+                  {loading ? "..." : stats.calories_burned.toLocaleString()}
+                </div>
                 <div className="text-sm text-muted-foreground">Calories Burned</div>
               </CardContent>
             </Card>
             <Card className="bg-card border-border hover-scale">
               <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-purple-500">8,234</div>
+                <div className="text-2xl font-bold text-purple-500">
+                  {loading ? "..." : stats.steps_today.toLocaleString()}
+                </div>
                 <div className="text-sm text-muted-foreground">Steps Today</div>
               </CardContent>
             </Card>
