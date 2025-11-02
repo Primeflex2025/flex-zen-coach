@@ -20,6 +20,17 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const videoSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(200, "Title too long"),
+  description: z.string().max(1000, "Description too long").optional(),
+  url: z.string().url("Invalid video URL").regex(/^https?:\/\/(www\.)?(youtube\.com|youtu\.be|vimeo\.com)/, {
+    message: "URL must be from YouTube or Vimeo"
+  }),
+  muscle: z.string().max(100, "Muscle name too long").optional(),
+  difficulty: z.enum(["Beginner", "Intermediate", "Advanced"])
+});
 
 interface FeedbackItem {
   id: string;
@@ -90,10 +101,19 @@ const AdminPanel = () => {
   };
 
   const handleVideoUpload = async () => {
-    if (!videoTitle || !videoUrl) {
+    // Validate input
+    const validation = videoSchema.safeParse({
+      title: videoTitle,
+      description: videoDescription,
+      url: videoUrl,
+      muscle: videoMuscle,
+      difficulty: videoDifficulty
+    });
+
+    if (!validation.success) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in at least title and video URL",
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
         variant: "destructive",
       });
       return;

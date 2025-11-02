@@ -7,6 +7,11 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const messageSchema = z.object({
+  message: z.string().trim().min(1, "Message cannot be empty").max(500, "Message must be less than 500 characters")
+});
 
 interface Message {
   id: string;
@@ -74,7 +79,19 @@ const Community = () => {
   }, [toast]);
 
   const handleSend = async () => {
-    if (!newMessage.trim() || !user) return;
+    if (!user) return;
+
+    // Validate input
+    const validation = messageSchema.safeParse({ message: newMessage });
+
+    if (!validation.success) {
+      toast({
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSending(true);
     const { error } = await supabase.from("community_messages").insert({

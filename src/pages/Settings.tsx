@@ -10,6 +10,22 @@ import { ArrowLeft, Settings as SettingsIcon, User, Bell, Moon, Info, Save } fro
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const profileSchema = z.object({
+  full_name: z.string().trim().min(1, "Name cannot be empty").max(100, "Name must be less than 100 characters"),
+  age: z.string().refine((val) => val === "" || (!isNaN(parseInt(val)) && parseInt(val) >= 13 && parseInt(val) <= 120), {
+    message: "Age must be between 13 and 120"
+  }).optional(),
+  height: z.string().refine((val) => val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) >= 50 && parseFloat(val) <= 300), {
+    message: "Height must be between 50-300 cm"
+  }).optional(),
+  weight: z.string().refine((val) => val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) >= 20 && parseFloat(val) <= 500), {
+    message: "Weight must be between 20-500 kg"
+  }).optional(),
+  gender: z.enum(["male", "female", "other", ""]).optional(),
+  fitness_goal: z.enum(["fat_loss", "muscle_gain", "maintain", "athletic", ""]).optional()
+});
 
 const Settings = () => {
   const { user } = useAuth();
@@ -56,6 +72,21 @@ const Settings = () => {
 
   const handleSave = async () => {
     if (!user) return;
+
+    // Validate input
+    const validation = profileSchema.safeParse({
+      full_name: profile.full_name,
+      age: profile.age,
+      height: profile.height,
+      weight: profile.weight,
+      gender: profile.gender,
+      fitness_goal: profile.fitness_goal
+    });
+
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
 
     const updateData: any = {
       full_name: profile.full_name,

@@ -9,6 +9,17 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { z } from "zod";
+
+const strengthSchema = z.object({
+  exercise: z.string().trim().min(1, "Exercise name required").max(100, "Exercise name too long"),
+  weight: z.string().refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0 && parseFloat(val) <= 1000, {
+    message: "Weight must be between 0.1-1000 kg"
+  }),
+  reps: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 1 && parseInt(val) <= 500, {
+    message: "Reps must be between 1-500"
+  })
+});
 
 interface WorkoutRecord {
   id: string;
@@ -60,8 +71,15 @@ const Strength = () => {
       return;
     }
 
-    if (!exercise || !weight || !reps) {
-      toast.error("Please fill all fields");
+    // Validate input
+    const validation = strengthSchema.safeParse({
+      exercise,
+      weight,
+      reps
+    });
+
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
       return;
     }
 

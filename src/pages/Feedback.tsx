@@ -7,6 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const feedbackSchema = z.object({
+  message: z.string().trim().min(1, "Feedback cannot be empty").max(1000, "Feedback must be less than 1000 characters")
+});
 
 const Feedback = () => {
   const navigate = useNavigate();
@@ -16,10 +21,22 @@ const Feedback = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
-    if (!feedback.trim()) {
+    if (!user) {
       toast({
-        title: "Empty Feedback",
-        description: "Please enter your feedback before submitting",
+        title: "Error",
+        description: "You must be logged in",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate input
+    const validation = feedbackSchema.safeParse({ message: feedback });
+
+    if (!validation.success) {
+      toast({
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
         variant: "destructive",
       });
       return;
@@ -27,8 +44,8 @@ const Feedback = () => {
 
     setIsSubmitting(true);
     const { error } = await supabase.from("feedback").insert({
-      user_id: user?.id,
-      message: feedback,
+      user_id: user.id,
+      message: feedback.trim(),
     });
 
     if (error) {
