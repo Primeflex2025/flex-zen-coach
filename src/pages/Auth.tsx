@@ -41,6 +41,14 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [loginDetails, setLoginDetails] = useState({
+    age: "",
+    gender: "",
+    height: "",
+    weight: "",
+    fitness_goal: "",
+    diet_type: ""
+  });
   const [signupData, setSignupData] = useState({
     email: "",
     password: "",
@@ -73,16 +81,61 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email: loginEmail,
       password: loginPassword,
     });
 
     if (error) {
       toast.error(error.message);
-    } else {
-      toast.success("Welcome back!");
+      setIsLoading(false);
+      return;
     }
+
+    // Update profile with body details if provided
+    if (data.user) {
+      const updateData: any = {};
+      
+      if (loginDetails.age) {
+        const age = parseInt(loginDetails.age);
+        if (age >= 13 && age <= 120) {
+          updateData.age = age;
+        }
+      }
+      if (loginDetails.height) {
+        const height = parseFloat(loginDetails.height);
+        if (height >= 50 && height <= 300) {
+          updateData.height = height;
+        }
+      }
+      if (loginDetails.weight) {
+        const weight = parseFloat(loginDetails.weight);
+        if (weight >= 20 && weight <= 500) {
+          updateData.weight = weight;
+        }
+      }
+      if (loginDetails.gender) updateData.gender = loginDetails.gender;
+      if (loginDetails.fitness_goal) updateData.fitness_goal = loginDetails.fitness_goal;
+      if (loginDetails.diet_type) updateData.diet_type = loginDetails.diet_type;
+
+      // Only update if there are fields to update
+      if (Object.keys(updateData).length > 0) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update(updateData)
+          .eq('id', data.user.id);
+
+        if (profileError) {
+          console.error("Profile update error:", profileError);
+        } else {
+          toast.success("Welcome back! Profile updated.");
+          setIsLoading(false);
+          return;
+        }
+      }
+    }
+
+    toast.success("Welcome back!");
     setIsLoading(false);
   };
 
@@ -163,9 +216,9 @@ const Auth = () => {
               </TabsList>
 
               <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                    <Label htmlFor="login-email">Email *</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input 
@@ -180,7 +233,7 @@ const Auth = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
+                    <Label htmlFor="login-password">Password *</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input 
@@ -194,6 +247,94 @@ const Auth = () => {
                       />
                     </div>
                   </div>
+
+                  <div className="pt-3 border-t border-border">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Activity className="w-4 h-4 text-primary" />
+                      <Label className="text-sm font-semibold">Body Details (Optional)</Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Update your profile information to get personalized recommendations
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="login-age">Age</Label>
+                        <Input 
+                          id="login-age" 
+                          type="number" 
+                          placeholder="25"
+                          value={loginDetails.age}
+                          onChange={(e) => setLoginDetails({...loginDetails, age: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="login-gender">Gender</Label>
+                        <Select value={loginDetails.gender} onValueChange={(value) => setLoginDetails({...loginDetails, gender: value})}>
+                          <SelectTrigger id="login-gender">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="login-height">Height (cm)</Label>
+                        <Input 
+                          id="login-height" 
+                          type="number" 
+                          placeholder="170"
+                          value={loginDetails.height}
+                          onChange={(e) => setLoginDetails({...loginDetails, height: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="login-weight">Weight (kg)</Label>
+                        <Input 
+                          id="login-weight" 
+                          type="number" 
+                          placeholder="70"
+                          value={loginDetails.weight}
+                          onChange={(e) => setLoginDetails({...loginDetails, weight: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="login-goal">Fitness Goal</Label>
+                      <Select value={loginDetails.fitness_goal} onValueChange={(value) => setLoginDetails({...loginDetails, fitness_goal: value})}>
+                        <SelectTrigger id="login-goal">
+                          <SelectValue placeholder="Select your goal" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="fat_loss">Fat Loss</SelectItem>
+                          <SelectItem value="muscle_gain">Muscle Gain</SelectItem>
+                          <SelectItem value="maintain">Maintenance</SelectItem>
+                          <SelectItem value="athletic">Athletic Performance</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="login-diet">Diet Type</Label>
+                      <Select value={loginDetails.diet_type} onValueChange={(value) => setLoginDetails({...loginDetails, diet_type: value})}>
+                        <SelectTrigger id="login-diet">
+                          <SelectValue placeholder="Select diet preference" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="veg">Vegetarian</SelectItem>
+                          <SelectItem value="non_veg">Non-Vegetarian</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
                   <Button type="submit" variant="hero" className="w-full" disabled={isLoading}>
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
