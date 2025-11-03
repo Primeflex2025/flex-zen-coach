@@ -1,16 +1,128 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Dumbbell, Clock, Repeat, Save, Calendar, TrendingDown, Flame, Info, Zap } from "lucide-react";
+import { ArrowLeft, Dumbbell, Clock, Repeat, Save, Calendar, TrendingDown, Flame, Info, Zap, CheckCircle2, Circle, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Progress as ProgressBar } from "@/components/ui/progress";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Workouts = () => {
+  const { user } = useAuth();
   const [savedWorkouts, setSavedWorkouts] = useState<string[]>([]);
   const [level, setLevel] = useState<"beginner" | "intermediate" | "pro">("intermediate");
   const [selectedDay, setSelectedDay] = useState<string>("Monday");
+  const [completions, setCompletions] = useState<Record<string, boolean>>({});
+  const [weeklyProgress, setWeeklyProgress] = useState<Array<{ day: string; percentage: number }>>([]);
+
+  useEffect(() => {
+    if (user) {
+      fetchCompletions();
+      fetchWeeklyProgress();
+    }
+  }, [user]);
+
+  const fetchCompletions = async () => {
+    if (!user) return;
+    
+    const today = new Date().toISOString().split("T")[0];
+    const { data } = await supabase
+      .from("workout_completions")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("workout_date", today)
+      .eq("workout_type", "strength");
+
+    if (data) {
+      const completionMap: Record<string, boolean> = {};
+      data.forEach((item) => {
+        completionMap[item.exercise_name] = item.completed;
+      });
+      setCompletions(completionMap);
+    }
+  };
+
+  const fetchWeeklyProgress = async () => {
+    if (!user) return;
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const { data } = await supabase
+      .from("workout_completions")
+      .select("workout_date, completed")
+      .eq("user_id", user.id)
+      .eq("workout_type", "strength")
+      .gte("workout_date", sevenDaysAgo.toISOString().split("T")[0])
+      .order("workout_date");
+
+    if (data) {
+      const progressByDate = data.reduce((acc: Record<string, { total: number; completed: number }>, curr) => {
+        if (!acc[curr.workout_date]) {
+          acc[curr.workout_date] = { total: 0, completed: 0 };
+        }
+        acc[curr.workout_date].total += 1;
+        if (curr.completed) {
+          acc[curr.workout_date].completed += 1;
+        }
+        return acc;
+      }, {});
+
+      const progressData = Object.entries(progressByDate).map(([date, data]) => ({
+        day: new Date(date).toLocaleDateString("en-US", { weekday: "short" }),
+        percentage: Math.round((data.completed / data.total) * 100),
+      }));
+
+      setWeeklyProgress(progressData);
+    }
+  };
+
+  const toggleCompletion = async (exerciseName: string) => {
+    if (!user) {
+      toast.error("Please login to track progress");
+      return;
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+    const isCompleted = !completions[exerciseName];
+
+    const { error } = await supabase.from("workout_completions").upsert({
+      user_id: user.id,
+      exercise_name: exerciseName,
+      workout_date: today,
+      workout_type: "strength",
+      completed: isCompleted,
+    });
+
+    if (!error) {
+      setCompletions({ ...completions, [exerciseName]: isCompleted });
+      fetchWeeklyProgress();
+      
+      if (isCompleted) {
+        toast.success("Exercise completed! 💪");
+      }
+    }
+  };
+
+  const getCurrentExercises = (day: string) => {
+    return workoutPlans[level][day as keyof typeof workoutPlans.beginner] || [];
+  };
+
+  const calculateDailyProgress = (day: string) => {
+    const exercises = getCurrentExercises(day);
+    if (exercises.length === 0) return { completed: 0, total: 0, percentage: 0 };
+    
+    const completed = exercises.filter(ex => completions[ex.name]).length;
+    const total = exercises.length;
+    const percentage = Math.round((completed / total) * 100);
+    
+    return { completed, total, percentage };
+  };
 
   const weeklySchedule = [
     { day: "Monday", focus: "Lower Chest + Triceps", intensity: "High", color: "from-red-500/20 to-red-500/5" },
@@ -381,7 +493,12 @@ const Workouts = () => {
                     className="border-border hover:border-primary transition-all hover-scale"
                   >
                     <CardContent className="py-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Checkbox
+                          checked={completions[exercise.name] || false}
+                          onCheckedChange={() => toggleCompletion(exercise.name)}
+                          className="mt-1"
+                        />
                         <div className="flex-1">
                           <h3 className="font-semibold text-lg mb-1">{exercise.name}</h3>
                           <Badge variant="outline" className="mb-2 text-xs">{exercise.muscle}</Badge>
@@ -414,6 +531,76 @@ const Workouts = () => {
                 <Save className="w-5 h-5 mr-2" />
                 Save {day.charAt(0).toUpperCase() + day.slice(1)} Day Plan
               </Button>
+
+              {/* Progress Tracking Section */}
+              <Card className="mt-6 border-primary/50 bg-gradient-to-br from-primary/10 to-primary/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                    Today's Progress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Completion Rate</span>
+                      <span className="text-2xl font-bold text-primary">
+                        {calculateDailyProgress(day).percentage}%
+                      </span>
+                    </div>
+                    <ProgressBar value={calculateDailyProgress(day).percentage} className="h-3" />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {calculateDailyProgress(day).completed} of {calculateDailyProgress(day).total} exercises completed
+                    </p>
+                  </div>
+
+                  {calculateDailyProgress(day).percentage === 100 ? (
+                    <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <p className="text-sm font-medium text-green-500">
+                        🔥 You crushed today's workout!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                      <Dumbbell className="w-5 h-5 text-primary" />
+                      <p className="text-sm font-medium">
+                        💪 Keep going! You're doing great!
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Weekly Progress Graph */}
+              {weeklyProgress.length > 0 && (
+                <Card className="mt-6 border-primary/30">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-primary" />
+                      Weekly Progress
+                    </CardTitle>
+                    <CardDescription>Your completion rate over the last 7 days</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={weeklyProgress}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="day" className="text-xs" />
+                        <YAxis className="text-xs" domain={[0, 100]} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))', 
+                            border: '1px solid hsl(var(--border))' 
+                          }}
+                          formatter={(value: number) => [`${value}%`, 'Completion']}
+                        />
+                        <Bar dataKey="percentage" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           ))}
         </Tabs>
