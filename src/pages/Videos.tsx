@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,85 +6,50 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Video, Play, Heart, MessageCircle, Search, Star } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+interface TrainerVideo {
+  id: string;
+  title: string;
+  description: string | null;
+  video_url: string;
+  thumbnail_url: string | null;
+  target_muscle: string | null;
+  difficulty: string | null;
+  is_featured: boolean | null;
+  created_at: string;
+}
 
 const Videos = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [likedVideos, setLikedVideos] = useState<string[]>([]);
+  const [videos, setVideos] = useState<TrainerVideo[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const trainerVideos = [
-    { 
-      id: "1", 
-      title: "Perfect Squat Form Tutorial", 
-      trainer: "Coach Marcus", 
-      duration: "8:45", 
-      category: "Legs",
-      difficulty: "Beginner",
-      views: "12.5K"
-    },
-    { 
-      id: "2", 
-      title: "Bench Press Technique Breakdown", 
-      trainer: "Sarah Johnson", 
-      duration: "10:20", 
-      category: "Chest",
-      difficulty: "Intermediate",
-      views: "18.2K"
-    },
-    { 
-      id: "3", 
-      title: "Deadlift Mastery - Avoid Common Mistakes", 
-      trainer: "Coach Marcus", 
-      duration: "12:15", 
-      category: "Back",
-      difficulty: "Advanced",
-      views: "25.8K"
-    },
-    { 
-      id: "4", 
-      title: "Shoulder Day Complete Workout", 
-      trainer: "Alex Chen", 
-      duration: "15:30", 
-      category: "Shoulders",
-      difficulty: "Intermediate",
-      views: "9.4K"
-    },
-    { 
-      id: "5", 
-      title: "Core Strength & Abs Workout", 
-      trainer: "Sarah Johnson", 
-      duration: "11:00", 
-      category: "Core",
-      difficulty: "Beginner",
-      views: "31.2K"
-    },
-    { 
-      id: "6", 
-      title: "Pull-up Progression for Beginners", 
-      trainer: "Alex Chen", 
-      duration: "9:30", 
-      category: "Back",
-      difficulty: "Beginner",
-      views: "22.1K"
-    },
-    { 
-      id: "7", 
-      title: "Advanced Arm Training Techniques", 
-      trainer: "Coach Marcus", 
-      duration: "13:45", 
-      category: "Arms",
-      difficulty: "Advanced",
-      views: "15.7K"
-    },
-    { 
-      id: "8", 
-      title: "Leg Day Intensity - Complete Session", 
-      trainer: "Sarah Johnson", 
-      duration: "18:20", 
-      category: "Legs",
-      difficulty: "Advanced",
-      views: "19.3K"
-    }
-  ];
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("trainer_videos")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching trainer videos:", error);
+          toast.error("Failed to load videos");
+        } else {
+          setVideos(data || []);
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        toast.error("Failed to load videos");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVideos();
+  }, []);
 
   const trainerOfWeek = {
     name: "Coach Marcus",
@@ -103,10 +68,10 @@ const Videos = () => {
     }
   };
 
-  const filteredVideos = trainerVideos.filter(video =>
+  const filteredVideos = videos.filter(video =>
     video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    video.trainer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    video.category.toLowerCase().includes(searchQuery.toLowerCase())
+    (video.target_muscle?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+    (video.difficulty?.toLowerCase() || "").includes(searchQuery.toLowerCase())
   );
 
   const getDifficultyColor = (difficulty: string) => {
@@ -182,82 +147,108 @@ const Videos = () => {
         </div>
 
         {/* Video Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVideos.map((video, i) => (
-            <Card 
-              key={video.id}
-              className="border-border hover:border-primary transition-all hover-scale overflow-hidden cursor-pointer"
-              style={{ animationDelay: `${i * 0.05}s` }}
-            >
-              {/* Thumbnail */}
-              <div className="relative aspect-video bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center">
-                <Play className="w-16 h-16 text-primary opacity-80" />
-                <div className="absolute bottom-2 right-2 bg-black/80 text-white px-2 py-1 rounded text-xs font-semibold">
-                  {video.duration}
-                </div>
-              </div>
-
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <CardTitle className="text-base leading-tight">{video.title}</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="flex-shrink-0 h-8 w-8"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleLike(video.id);
-                    }}
-                  >
-                    <Heart 
-                      className={`w-4 h-4 ${likedVideos.includes(video.id) ? 'fill-red-500 text-red-500' : ''}`} 
+        {loading ? (
+          <div className="text-center py-12">
+            <Video className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50 animate-pulse" />
+            <p className="text-muted-foreground">Loading videos...</p>
+          </div>
+        ) : filteredVideos.length > 0 ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredVideos.map((video, i) => (
+              <Card 
+                key={video.id}
+                className="border-border hover:border-primary transition-all hover-scale overflow-hidden cursor-pointer"
+                style={{ animationDelay: `${i * 0.05}s` }}
+                onClick={() => window.open(video.video_url, "_blank")}
+              >
+                {/* Thumbnail */}
+                <div className="relative aspect-video bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center overflow-hidden">
+                  {video.thumbnail_url ? (
+                    <img 
+                      src={video.thumbnail_url} 
+                      alt={video.title}
+                      className="w-full h-full object-cover"
                     />
-                  </Button>
-                </div>
-                <CardDescription className="text-sm">by {video.trainer}</CardDescription>
-              </CardHeader>
-
-              <CardContent className="pt-0">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      {video.category}
-                    </Badge>
-                    <Badge variant="outline" className={`text-xs ${getDifficultyColor(video.difficulty)}`}>
-                      {video.difficulty}
-                    </Badge>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {video.views} views
+                  ) : (
+                    <Play className="w-16 h-16 text-primary opacity-80" />
+                  )}
+                  <div className="absolute inset-0 bg-black/20 hover:bg-black/40 transition-colors flex items-center justify-center">
+                    <Play className="w-12 h-12 text-white opacity-80" />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
 
-        {filteredVideos.length === 0 && (
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <CardTitle className="text-base leading-tight">{video.title}</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleLike(video.id);
+                      }}
+                    >
+                      <Heart 
+                        className={`w-4 h-4 ${likedVideos.includes(video.id) ? 'fill-red-500 text-red-500' : ''}`} 
+                      />
+                    </Button>
+                  </div>
+                  {video.description && (
+                    <CardDescription className="text-sm line-clamp-2">{video.description}</CardDescription>
+                  )}
+                </CardHeader>
+
+                <CardContent className="pt-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {video.target_muscle && (
+                      <Badge variant="outline" className="text-xs capitalize">
+                        {video.target_muscle}
+                      </Badge>
+                    )}
+                    {video.difficulty && (
+                      <Badge variant="outline" className={`text-xs capitalize ${getDifficultyColor(video.difficulty)}`}>
+                        {video.difficulty}
+                      </Badge>
+                    )}
+                    {video.is_featured && (
+                      <Badge className="text-xs bg-primary">
+                        Featured
+                      </Badge>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
           <div className="text-center py-12">
             <Video className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <p className="text-muted-foreground">No videos found matching "{searchQuery}"</p>
+            <p className="text-muted-foreground mb-2">
+              {searchQuery ? `No videos found matching "${searchQuery}"` : "No trainer videos uploaded yet"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {!searchQuery && "Upload videos through the Admin Panel to get started!"}
+            </p>
           </div>
         )}
 
         {/* Info Card */}
-        <Card className="mt-8 border-primary/30 bg-primary/5">
-          <CardContent className="py-6">
-            <div className="flex items-start gap-3">
-              <Video className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="font-semibold mb-2">📹 Full Video Playback Coming Soon</h3>
-                <p className="text-sm text-muted-foreground">
-                  Video streaming and interactive features are in development. For now, explore our trainer library 
-                  and save your favorites. You can also like videos and leave comments to engage with the community!
-                </p>
+        {videos.length > 0 && (
+          <Card className="mt-8 border-primary/30 bg-primary/5">
+            <CardContent className="py-6">
+              <div className="flex items-start gap-3">
+                <Video className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-semibold mb-2">📹 Click any video to watch</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Click on any video card to open and watch the full training video. Videos are uploaded and managed by trainers through the Admin Panel.
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
