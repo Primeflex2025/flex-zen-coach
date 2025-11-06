@@ -26,6 +26,7 @@ import Feedback from "./pages/Feedback";
 import Community from "./pages/Community";
 import HomeWorkout from "./pages/HomeWorkout";
 import Calisthenics from "./pages/Calisthenics";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/about" element={<About />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

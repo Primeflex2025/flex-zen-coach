@@ -393,22 +393,28 @@ const Settings = () => {
         </Card>
 
         {/* About */}
-        <Card className="border-border bg-card/50">
+        <Card className="border-border bg-card/50 mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Info className="w-5 h-5 text-primary" />
               About
             </CardTitle>
+            <CardDescription>App information and version details</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-4">
             <div className="flex justify-between">
               <span className="text-muted-foreground">App Version</span>
-              <span className="font-semibold">1.0.0</span>
+              <span className="font-semibold">2.0.0</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Build</span>
               <span className="font-semibold">2025.01.15</span>
             </div>
+            <Link to="/about">
+              <Button variant="outline" className="w-full">
+                View Full App Guide
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 
