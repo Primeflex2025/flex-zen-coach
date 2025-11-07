@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Settings as SettingsIcon, User, Bell, Moon, Info, Save } from "lucide-react";
+import { ArrowLeft, Settings as SettingsIcon, User, Bell, Moon, Info, Save, Instagram } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -415,6 +415,33 @@ const Settings = () => {
                 View Full App Guide
               </Button>
             </Link>
+          </CardContent>
+        </Card>
+
+        {/* Contact via Instagram */}
+        <Card className="border-primary/30 bg-card/50 mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Instagram className="w-5 h-5 text-pink-500" />
+              Contact via Instagram
+            </CardTitle>
+            <CardDescription>Reach out for support and updates</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Need help or have feedback? Reach out directly on Instagram for support or collaboration.
+            </p>
+            <Button 
+              onClick={() => window.open('https://instagram.com/primeflex__official', '_blank')} 
+              variant="default" 
+              className="w-full gap-2"
+            >
+              <Instagram className="w-4 h-4" />
+              Open @primeflex__official
+            </Button>
+            <p className="text-xs text-muted-foreground text-center pt-2">
+              Developed by <strong>Ruthvik Reddy</strong> & <strong>Anurag Yadav</strong>
+            </p>
           </CardContent>
         </Card>
 
