@@ -74,7 +74,7 @@ const Dashboard = () => {
     { icon: Droplet, title: "Water Reminder", desc: "Stay hydrated", link: "/water", color: "text-cyan-500" },
     { icon: Footprints, title: "Step Tracker", desc: "Daily activity monitor", link: "/steps", color: "text-purple-500" },
     { icon: Music, title: "Mind-Muscle Mode", desc: "Focus with music", link: "/mindmuscle", color: "text-primary" },
-    { icon: Video, title: "Trainer Videos", desc: "Expert guidance", link: "/videos", color: "text-orange-500" },
+    { icon: Video, title: "Workout Videos", desc: "Expert guidance", link: "/videos", color: "text-orange-500" },
     { icon: Pill, title: "Nutrition Guide", desc: "Supplements & macros", link: "/nutrition", color: "text-yellow-500" },
     { icon: Move, title: "Height Growth", desc: "Growth tips & exercises", link: "/height-growth", color: "text-emerald-500" },
     { icon: Zap, title: "Home Workouts", desc: "No equipment needed", link: "/home-workout", color: "text-amber-500" },

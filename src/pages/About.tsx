@@ -84,7 +84,7 @@ const About = () => {
                   <li>View real-time <strong>completion %</strong> and <strong>strength graph</strong> updates</li>
                   <li>Get motivational popups when all workouts are done</li>
                 </ol>
-                <p className="text-sm italic text-primary">💡 Tip: Tap ▶️ beside an exercise to see the proper form via Trainer Videos.</p>
+                <p className="text-sm italic text-primary">💡 Tip: Tap ▶️ beside an exercise to see the proper form via Workout Videos.</p>
               </CardContent>
             </Card>
 
@@ -165,19 +165,19 @@ const About = () => {
             {/* Feature 7 */}
             <Card className="border-border">
               <CardHeader>
-                <CardTitle className="text-xl">🎥 Trainer Videos</CardTitle>
-                <CardDescription>Professional exercise guidance</CardDescription>
+                <CardTitle className="text-xl">🎥 Workout Videos</CardTitle>
+                <CardDescription>Professional exercise guidance organized by muscle group</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 <p className="font-semibold">How to Use:</p>
                 <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                  <li>Open <strong>Trainer Videos</strong></li>
-                  <li>Watch admin-uploaded trainer videos</li>
-                  <li>Search or auto-filter by exercise name (e.g., "Push-ups", "Chest Press")</li>
-                  <li>Tap ▶️ on any exercise card to view linked video tutorials</li>
-                  <li>Each video includes a custom thumbnail, trainer name, and duration</li>
+                  <li>Open <strong>Workout Videos</strong></li>
+                  <li>Browse videos organized by sections (Chest, Back, Shoulders, Arms, Legs, Core, Cardio)</li>
+                  <li>Search by exercise name, category, or difficulty</li>
+                  <li>Tap any video card to watch it directly in the app</li>
+                  <li>Videos play with screen capture protection - no downloads or screenshots allowed</li>
                 </ol>
-                <p className="text-sm italic text-primary">💡 Tip: All exercise videos in the app are synced with this section automatically.</p>
+                <p className="text-sm italic text-primary">💡 Tip: All videos are categorized by muscle groups for easy navigation and feature in-app playback.</p>
               </CardContent>
             </Card>
 
@@ -277,7 +277,7 @@ const About = () => {
               <CardContent className="space-y-2">
                 <p className="font-semibold">How to Use:</p>
                 <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                  <li>Open <strong>Settings → Feedback</strong> or go to the <strong>Trainer Videos</strong> bottom section</li>
+                  <li>Open <strong>Settings → Feedback</strong> or go to the <strong>Workout Videos</strong> bottom section</li>
                   <li>Write your message or suggestions</li>
                   <li>Submit — your feedback is securely saved for developer review</li>
                 </ol>
@@ -373,7 +373,7 @@ const About = () => {
               </div>
               <div className="flex gap-3">
                 <span className="font-bold min-w-[60px]">v1.3.0</span>
-                <span className="text-muted-foreground">Added Trainer Videos integration</span>
+                <span className="text-muted-foreground">Added Workout Videos integration with categories</span>
               </div>
               <div className="flex gap-3">
                 <span className="font-bold min-w-[60px]">v1.2.0</span>

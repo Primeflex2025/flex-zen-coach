@@ -219,6 +219,7 @@ export type Database = {
           difficulty: string | null
           id: string
           is_featured: boolean | null
+          section: string | null
           target_muscle: string | null
           thumbnail_url: string | null
           title: string
@@ -232,6 +233,7 @@ export type Database = {
           difficulty?: string | null
           id?: string
           is_featured?: boolean | null
+          section?: string | null
           target_muscle?: string | null
           thumbnail_url?: string | null
           title: string
@@ -245,6 +247,7 @@ export type Database = {
           difficulty?: string | null
           id?: string
           is_featured?: boolean | null
+          section?: string | null
           target_muscle?: string | null
           thumbnail_url?: string | null
           title?: string

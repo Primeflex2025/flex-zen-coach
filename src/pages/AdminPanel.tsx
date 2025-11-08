@@ -66,10 +66,12 @@ const AdminPanel = () => {
   const [videoDifficulty, setVideoDifficulty] = useState("Beginner");
   const [trainerName, setTrainerName] = useState("");
   const [isFeatured, setIsFeatured] = useState(false);
+  const [videoSection, setVideoSection] = useState("Chest");
   const [uploading, setUploading] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [uploadedVideos, setUploadedVideos] = useState<UploadedVideo[]>([]);
   const [loadingVideos, setLoadingVideos] = useState(true);
+  const [editingVideo, setEditingVideo] = useState<UploadedVideo | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -150,6 +152,40 @@ const AdminPanel = () => {
       });
     } finally {
       setLoadingVideos(false);
+    }
+  };
+
+  const handleEditVideo = async () => {
+    if (!editingVideo) return;
+
+    try {
+      const { error } = await supabase
+        .from("trainer_videos")
+        .update({
+          title: editingVideo.title,
+          description: editingVideo.description,
+          trainer_name: editingVideo.trainer_name,
+          target_muscle: editingVideo.target_muscle,
+          difficulty: editingVideo.difficulty,
+          is_featured: editingVideo.is_featured,
+        })
+        .eq("id", editingVideo.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Video updated successfully",
+      });
+
+      setEditingVideo(null);
+      loadUploadedVideos();
+    } catch (error: any) {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update video",
+        variant: "destructive",
+      });
     }
   };
 
@@ -287,6 +323,7 @@ const AdminPanel = () => {
         difficulty: videoDifficulty,
         trainer_name: trainerName,
         is_featured: isFeatured,
+        section: videoSection,
       });
 
       if (dbError) {
@@ -307,6 +344,7 @@ const AdminPanel = () => {
       setVideoDifficulty("Beginner");
       setTrainerName("");
       setIsFeatured(false);
+      setVideoSection("Chest");
       
       // Reload videos list
       loadUploadedVideos();
@@ -494,6 +532,25 @@ const AdminPanel = () => {
                   )}
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="section">Category / Section *</Label>
+                  <select
+                    id="section"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2"
+                    value={videoSection}
+                    onChange={(e) => setVideoSection(e.target.value)}
+                  >
+                    <option value="Chest">Chest</option>
+                    <option value="Back">Back</option>
+                    <option value="Shoulders">Shoulders</option>
+                    <option value="Arms">Arms</option>
+                    <option value="Legs">Legs</option>
+                    <option value="Core">Core</option>
+                    <option value="Cardio">Cardio</option>
+                    <option value="General">General</option>
+                  </select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="target-muscle">Target Muscle Group</Label>
@@ -627,6 +684,14 @@ const AdminPanel = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                onClick={() => setEditingVideo(video)}
+                                title="Edit video"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={() => handleDeleteVideo(video.id, video.video_url)}
                                 title="Delete video"
                                 className="text-destructive hover:text-destructive"
@@ -643,6 +708,93 @@ const AdminPanel = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Edit Video Dialog */}
+          {editingVideo && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <Card className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                <CardHeader>
+                  <CardTitle>Edit Video</CardTitle>
+                  <CardDescription>Update video details</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Title</Label>
+                    <Input
+                      value={editingVideo.title}
+                      onChange={(e) =>
+                        setEditingVideo({ ...editingVideo, title: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={editingVideo.description || ""}
+                      onChange={(e) =>
+                        setEditingVideo({ ...editingVideo, description: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Trainer Name</Label>
+                    <Input
+                      value={editingVideo.trainer_name || ""}
+                      onChange={(e) =>
+                        setEditingVideo({ ...editingVideo, trainer_name: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Target Muscle</Label>
+                    <Input
+                      value={editingVideo.target_muscle || ""}
+                      onChange={(e) =>
+                        setEditingVideo({ ...editingVideo, target_muscle: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Difficulty</Label>
+                    <select
+                      className="w-full rounded-md border border-input bg-background px-3 py-2"
+                      value={editingVideo.difficulty || "Beginner"}
+                      onChange={(e) =>
+                        setEditingVideo({ ...editingVideo, difficulty: e.target.value })
+                      }
+                    >
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={editingVideo.is_featured || false}
+                      onChange={(e) =>
+                        setEditingVideo({ ...editingVideo, is_featured: e.target.checked })
+                      }
+                      className="rounded border-input"
+                    />
+                    <Label>Featured</Label>
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <Button onClick={handleEditVideo} className="flex-1">
+                      Save Changes
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setEditingVideo(null)}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Diet Plans Tab */}
           <TabsContent value="diet" className="space-y-6">
