@@ -1,0 +1,4 @@
+cd project-bolt-github-uarm9gkh/flex-zen-coach
+git add vercel.json
+git commit -m "Add vercel.json for routing"
+git push
